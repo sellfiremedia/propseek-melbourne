@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Landing Admin · PropSeek</title>
+<link rel="stylesheet" href="admin.css?v=4">
+</head>
+<body>
+
+<!-- Not configured -->
+<div class="center-msg" id="noConfig" hidden>
+  <h2>Almost there</h2>
+  <p>Open <code>config.js</code> (in the main folder of the repo) and paste your Supabase <b>Project URL</b> and <b>anon / publishable key</b>. See README step 3.</p>
+</div>
+
+<!-- Login -->
+<div class="login-body" id="loginView" hidden>
+  <form class="login" id="loginForm">
+    <div class="brand"><span class="logo">PS</span><div><b>PropSeek</b><small>Landing admin</small></div></div>
+    <div class="alert err" id="loginErr" hidden></div>
+    <label>Email</label><input name="email" type="email" autocomplete="username" required autofocus>
+    <label>Password</label><input name="password" type="password" autocomplete="current-password" required>
+    <button class="btn primary block">Log in</button>
+  </form>
+</div>
+
+<!-- Logged in but not an admin -->
+<div class="center-msg" id="notAdmin" hidden>
+  <h2>No admin access</h2>
+  <p>You're logged in as <b id="naEmail"></b>, but this email isn't in the <code>admins</code> table.</p>
+  <p class="muted">Supabase → SQL Editor → run:<br><code id="naSql"></code></p>
+  <button class="btn" id="naOut">Log out</button>
+</div>
+
+<!-- App -->
+<div id="app" hidden>
+<aside class="side" id="side">
+  <div class="brand"><span class="logo">PS</span><div><b>PropSeek</b><small>Landing admin</small></div></div>
+  <nav>
+    <a data-view="dashboard"><svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>Dashboard</a>
+    <a data-view="leads"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>Leads <span class="pill" id="newPill" hidden></span></a>
+    <a data-view="settings"><svg viewBox="0 0 24 24"><path d="M19.14 12.94a7.07 7.07 0 000-1.88l2.03-1.58a.5.5 0 00.12-.64l-1.92-3.32a.5.5 0 00-.6-.22l-2.39.96a7 7 0 00-1.63-.94l-.36-2.54a.5.5 0 00-.5-.42h-3.84a.5.5 0 00-.49.42l-.36 2.54c-.59.24-1.13.56-1.63.94l-2.39-.96a.5.5 0 00-.6.22L2.66 8.84a.5.5 0 00.12.64l2.03 1.58a7.07 7.07 0 000 1.88l-2.03 1.58a.5.5 0 00-.12.64l1.92 3.32c.12.22.38.3.6.22l2.39-.96c.5.38 1.04.7 1.63.94l.36 2.54c.05.24.25.42.49.42h3.84c.24 0 .45-.18.49-.42l.36-2.54c.59-.24 1.13-.56 1.63-.94l2.39.96c.22.08.48 0 .6-.22l1.92-3.32a.5.5 0 00-.12-.64l-2.03-1.58zM12 15.6a3.6 3.6 0 110-7.2 3.6 3.6 0 010 7.2z"/></svg>Settings</a>
+    <a href="../" target="_blank"><svg viewBox="0 0 24 24"><path d="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7zM19 19H5V5h7V3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7h-2v7z"/></svg>View landing page</a>
+  </nav>
+  <div class="me"><span id="meEmail"></span><a href="#" id="logout">Log out</a></div>
+</aside>
+
+<main class="main">
+<header class="top"><button class="burger" onclick="document.getElementById('side').classList.toggle('open')">☰</button><h1 id="title">Dashboard</h1></header>
+
+<!-- ===== Dashboard ===== -->
+<section class="view" id="v-dashboard">
+  <div class="toolbar">
+    <div class="seg" id="range">
+      <button data-r="today">Today</button><button data-r="yesterday">Yesterday</button><button data-r="7">7 days</button>
+      <button data-r="30" class="on">30 days</button><button data-r="90">90 days</button><button data-r="all">All time</button>
+    </div>
+    <div class="custom"><input type="date" id="dFrom"> – <input type="date" id="dTo"><button class="btn sm" id="applyCustom">Apply</button></div>
+    <span class="live"><i></i><b id="live">0</b> on page now</span>
+  </div>
+  <section class="kpis">
+    <div class="kpi" data-k="visitors" data-suf=""><span>Unique visitors</span><b>–</b><em></em></div>
+    <div class="kpi" data-k="pageviews" data-suf=""><span>Page views</span><b>–</b><em></em></div>
+    <div class="kpi" data-k="cta_clicks" data-suf=""><span>CTA button clicks</span><b>–</b><em></em></div>
+    <div class="kpi" data-k="form_starts" data-suf=""><span>Started the form</span><b>–</b><em></em></div>
+    <div class="kpi" data-k="leads" data-suf=""><span>Leads</span><b>–</b><em></em></div>
+    <div class="kpi" data-k="conversion" data-suf="%"><span>Conversion rate</span><b>–</b><em></em></div>
+    <div class="kpi" data-k="cta_rate" data-suf="%"><span>CTA click rate</span><b>–</b><em></em></div>
+    <div class="kpi" data-k="seats" data-suf=""><span>Seats requested</span><b>–</b><em></em></div>
+  </section>
+  <section class="card cap" id="capCard" hidden>
+    <div class="cap-h"><b>Event capacity</b><span id="capTxt"></span></div>
+    <div class="bar"><i id="capBar"></i></div>
+  </section>
+  <section class="grid">
+    <div class="card span2"><h3>Traffic &amp; leads over time</h3><div class="ch tall"><canvas id="cTrend"></canvas></div></div>
+    <div class="card"><h3>Conversion funnel</h3><div class="ch tall"><canvas id="cFunnel"></canvas></div></div>
+    <div class="card"><h3>Lead status</h3><div class="ch"><canvas id="cStatus"></canvas></div></div>
+    <div class="card"><h3>Traffic sources <small>visitors vs leads</small></h3><div class="ch"><canvas id="cSources"></canvas></div></div>
+    <div class="card"><h3>Devices</h3><div class="ch"><canvas id="cDevices"></canvas></div></div>
+    <div class="card"><h3>Which button got clicked</h3><div class="ch"><canvas id="cCtas"></canvas></div></div>
+    <div class="card"><h3>Leads by hour of day</h3><div class="ch"><canvas id="cHours"></canvas></div></div>
+    <div class="card"><h3>Super balance of leads</h3><div class="ch"><canvas id="cSuper"></canvas></div></div>
+    <div class="card span2"><h3>Campaigns <small>(utm_campaign)</small></h3><table class="tbl" id="tCamp"><thead><tr><th>Campaign</th><th class="r">Leads</th><th class="r">Seats</th></tr></thead><tbody></tbody></table></div>
+    <div class="card"><h3>Latest leads <a data-go="leads" class="more" href="#leads">All leads →</a></h3><ul class="recent" id="recent"></ul></div>
+  </section>
+</section>
+
+<!-- ===== Leads ===== -->
+<section class="view" id="v-leads">
+  <div class="chips" id="chips"></div>
+  <form class="filters card" id="filters">
+    <input type="search" name="q" placeholder="Search name, email, mobile, campaign, notes…">
+    <label>From <input type="date" name="from"></label>
+    <label>To <input type="date" name="to"></label>
+    <select name="n8n"><option value="">n8n: any</option><option value="sent">n8n: Sent</option><option value="failed">n8n: Failed</option><option value="queued">n8n: Queued</option><option value="skipped">n8n: Skipped</option></select>
+    <label class="chk"><input type="checkbox" name="dup" value="1"> Duplicates only</label>
+    <button class="btn">Filter</button>
+    <button type="button" class="btn ghost" id="fReset">Reset</button>
+    <button type="button" class="btn gold" id="exportCsv">⬇ Export CSV</button>
+  </form>
+  <div class="bulk" id="bulk" hidden>
+    <b id="selN">0</b> selected · Set status <select id="bulkStatus"></select>
+    <button class="btn sm" id="bulkApply">Apply</button>
+    <button class="btn sm ghost" id="bulkResend">Resend to n8n</button>
+    <button class="btn sm danger" id="bulkDelete">Delete</button>
+  </div>
+  <div class="card flush">
+    <div class="tbl-wrap">
+      <table class="tbl leads">
+        <thead><tr>
+          <th class="cb"><input type="checkbox" id="checkAll"></th>
+          <th><a href="#" data-sort="first_name">Name</a></th><th>Contact</th><th class="r"><a href="#" data-sort="seats">Seats</a></th>
+          <th>Super</th><th>Source</th><th><a href="#" data-sort="status">Status</a></th><th>n8n</th><th><a href="#" data-sort="created_at">Submitted</a></th><th></th>
+        </tr></thead>
+        <tbody id="leadRows"></tbody>
+      </table>
+    </div>
+    <div class="pager"><span id="pgInfo"></span><span><button class="btn sm ghost" id="pgPrev">← Prev</button><button class="btn sm ghost" id="pgNext">Next →</button></span></div>
+  </div>
+</section>
+
+<!-- ===== Settings ===== -->
+<section class="view" id="v-settings">
+  <div class="settings">
+    <form class="card" id="fInteg">
+      <h3>n8n</h3>
+      <label>New-lead webhook URL <small>Every form submission is sent here as JSON — straight from the database, so the URL is never visible in the page source.</small></label>
+      <div class="row"><input name="n8n_webhook_url" id="wh1" placeholder="https://your-n8n.com/webhook/xxxx"><button type="button" class="btn ghost" data-test="lead">Send test</button></div>
+      <div class="alert warn" id="whWarn" hidden>This is an n8n <b>test</b> URL — it only receives data while you click “Listen for test event”. Activate the workflow and paste the <b>Production URL</b> (<code>/webhook/</code>).</div>
+      <label>Status-change webhook URL <small>(optional) — fires when you change a lead's status, e.g. to send an SMS when someone is “Confirmed”.</small></label>
+      <div class="row"><input name="n8n_status_webhook_url" id="wh2" placeholder="https://your-n8n.com/webhook/yyyy"><button type="button" class="btn ghost" data-test="status">Send test</button></div>
+      <h3>Meta (Facebook) Pixel</h3>
+      <label>Pixel ID <small>The landing page loads the pixel with this ID and fires PageView, Lead, CTAClick and FormStart.</small></label>
+      <input name="meta_pixel_id" placeholder="1234567890123456" inputmode="numeric">
+      <button class="btn primary">Save integrations</button>
+    </form>
+
+    <form class="card" id="fGeneral">
+      <h3>General</h3>
+      <label>Report timezone</label>
+      <select name="timezone">
+        <option>Australia/Melbourne</option><option>Australia/Sydney</option><option>Australia/Brisbane</option><option>Australia/Adelaide</option>
+        <option>Australia/Darwin</option><option>Australia/Perth</option><option>Australia/Hobart</option><option>Asia/Colombo</option><option>UTC</option>
+      </select>
+      <label>Event capacity (seats) <small>Shows a “seats booked” bar on the dashboard. 0 = hide.</small></label>
+      <input name="event_capacity" type="number" min="0">
+      <button class="btn primary">Save</button>
+      <h3 style="margin-top:28px">Lead statuses</h3>
+      <p class="muted small">Rename, recolour, add or remove. “New” is always given to fresh leads.</p>
+      <div id="stRows"></div>
+      <button type="button" class="btn ghost sm" id="addSt">+ Add status</button>
+      <button type="button" class="btn primary" id="saveSt">Save statuses</button>
+    </form>
+
+    <div class="card">
+      <h3>Admin users</h3>
+      <p class="muted small">To add someone: (1) Supabase → Authentication → Users → <b>Add user</b> (email + password, tick “Auto confirm”), then (2) add the same email here.</p>
+      <table class="tbl"><tbody id="adminRows"></tbody></table>
+      <form class="row" id="fAdmin" style="margin-top:12px"><input name="email" type="email" placeholder="email@company.com" required><button class="btn ghost">Add admin</button></form>
+      <h3 style="margin-top:28px">Change my password</h3>
+      <form id="fPass"><input name="p1" type="password" placeholder="New password (8+)" minlength="8" required>
+        <input name="p2" type="password" placeholder="Repeat new password" required style="margin-top:8px">
+        <button class="btn primary">Change password</button></form>
+    </div>
+
+    <div class="card">
+      <h3>Connection</h3>
+      <dl class="kv small"><dt>Supabase</dt><dd><code id="sbUrl"></code></dd><dt>Timezone</dt><dd id="tzNow"></dd></dl>
+      <h3 style="margin-top:28px;color:#b91c1c">Danger zone</h3>
+      <p class="muted small">Clear all visit/click analytics (e.g. after testing). Leads are kept.</p>
+      <button class="btn danger sm" id="resetAn">Reset analytics</button>
+    </div>
+  </div>
+</section>
+</main>
+
+<div class="drawer-bg" id="drawerBg"></div>
+<aside class="drawer" id="drawer"><header><h2 id="dName">Lead</h2><button class="x" id="dClose">×</button></header><div class="drawer-body" id="dBody"></div></aside>
+</div>
+
+<div id="toast"></div>
+<script src="../config.js?v=4"></script>
+<script src="vendor/supabase.js"></script>
+<script src="vendor/chart.umd.min.js"></script>
+<script src="app.js?v=4"></script>
+</body>
+</html>
