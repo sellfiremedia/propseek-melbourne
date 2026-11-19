@@ -7,6 +7,6 @@
    NEVER put the service_role / secret key here.
    ===================================================================== */
 window.LP_SUPABASE = {
-  url: 'https://bdutaoipyhllnbqcbztb.supabase.co/rest/v1/',
+  url: 'https://bdutaoipyhllnbqcbztb.supabase.co',
   anonKey: 'sb_publishable_lMNYIfWYjIU-oyXOUICtfA_Kyx5GOEg'
 };
